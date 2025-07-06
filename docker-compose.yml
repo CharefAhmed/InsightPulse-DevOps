@@ -1,0 +1,45 @@
+version: '3.4'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: ip_db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ip_dashboard
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: ip_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://postgres:password@postgres:5432/ip_dashboard
+      OPENAI_API_KEY: your_openai_key_here
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+    command: npm run start:dev
+
+  frontend:
+    build: ./frontend
+    container_name: ip_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    command: npm run dev
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
