@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post,ValidationPipe } from '@nestjs/common';
-import {CommentsService} from './comments.service'
-import { CreateCommentDto } from './dto/create-comment.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
+import {CommentsService} from './comments.service';
+import { Prisma } from '@prisma/client';
 
 @Controller('comments')
 export class CommentsController {
@@ -15,11 +14,11 @@ export class CommentsController {
         return this.commentsService.findOne(id);
     }
     @Post()
-    create(@Body(ValidationPipe) createCommentDto:CreateCommentDto) { //submit info for creating new comment
+    create(@Body(ValidationPipe) createCommentDto:Prisma.commentCreateInput) { //submit info for creating new comment
         return this.commentsService.create(createCommentDto);                                    
     }
     @Patch(':id')
-    update(@Param('id',ParseIntPipe)id:number, @Body(ValidationPipe) updateCommentDto:UpdateCommentDto){ // modify info in one comment by author
+    update(@Param('id',ParseIntPipe)id:number, @Body(ValidationPipe) updateCommentDto:Prisma.commentUpdateInput){ // modify info in one comment by author
         return this.commentsService.update(id,updateCommentDto);
     }
     @Delete(':id')
