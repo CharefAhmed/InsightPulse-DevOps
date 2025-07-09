@@ -14,11 +14,11 @@ export class CommentsController {
         return this.commentsService.findOne(id);
     }
     @Post()
-    create(@Body(ValidationPipe) createCommentDto:Prisma.commentCreateInput) { //submit info for creating new comment
+    create(@Body() createCommentDto:Prisma.commentCreateInput) { //submit info for creating new comment
         return this.commentsService.create(createCommentDto);                                    
     }
     @Patch(':id')
-    update(@Param('id',ParseIntPipe)id:number, @Body(ValidationPipe) updateCommentDto:Prisma.commentUpdateInput){ // modify info in one comment by author
+    update(@Param('id',ParseIntPipe)id:number, @Body() updateCommentDto:Prisma.commentUpdateInput){ // modify info in one comment by author
         return this.commentsService.update(id,updateCommentDto);
     }
     @Delete(':id')
