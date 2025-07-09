@@ -18,6 +18,7 @@ model comment{
   id           Int      @id @default(autoincrement())
   content      String
   author       String
+  prodName     String?
   sentiment    AnalysisResult? @relation()
   createdAt    DateTime @default(now())
   updateAt     DateTime @updatedAt
