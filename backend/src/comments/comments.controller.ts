@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post,ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post,Query } from '@nestjs/common';
 import {CommentsService} from './comments.service';
 import { Prisma } from '@prisma/client';
 
@@ -6,8 +6,8 @@ import { Prisma } from '@prisma/client';
 export class CommentsController {
     constructor(private readonly commentsService:CommentsService){}
     @Get() //get all comments with url=/comments 
-    findAll(){
-        return this.commentsService.findAll();
+    findAll(@Query('author')author?:string,/*@Query('prodname') prodName?:string,*/@Query('sentiment') sentiment?:string,@Query('date') date?:string){
+        return this.commentsService.findAll(author,date,sentiment,/*prodName*/);
     }
     @Get(':id') //get comment by author with url=/comments/:author
     findOne(@Param('id',ParseIntPipe) id:number){
