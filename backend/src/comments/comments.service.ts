@@ -6,7 +6,7 @@ import { DatabaseService } from 'src/database/database.service';
 @Injectable()
 export class CommentsService {
     constructor(private readonly databaseService:DatabaseService ){}
-    async findAll(author:string,date:string,sentiment:string,/*prodName:string*/){
+    async findAll(author:string,date:string,sentiment:string){
         if(author){
             return this.databaseService.comment.findMany({
                 where:{
@@ -14,13 +14,6 @@ export class CommentsService {
                 }
             })
         }
-        /*if(prodName){
-            return this.databaseService.comment.findMany({
-                where:{
-                    prodName,           //Trying to fix this problem(prodName not found in'commentWhereInput' )
-                }
-            })
-        }*/
         if(sentiment){
             return this.databaseService.comment.findMany({
                 where:{

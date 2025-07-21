@@ -6,8 +6,8 @@ import { Prisma } from '@prisma/client';
 export class CommentsController {
     constructor(private readonly commentsService:CommentsService){}
     @Get() //get all comments with url=/comments 
-    findAll(@Query('author')author?:string,/*@Query('prodname') prodName?:string,*/@Query('sentiment') sentiment?:string,@Query('date') date?:string){
-        return this.commentsService.findAll(author,date,sentiment,/*prodName*/);
+    findAll(@Query('author')author?:string,@Query('sentiment') sentiment?:string,@Query('date') date?:string){
+        return this.commentsService.findAll(author,date,sentiment,);
     }
     @Get(':id') //get comment by author with url=/comments/:author
     findOne(@Param('id',ParseIntPipe) id:number){
