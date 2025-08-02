@@ -6,6 +6,7 @@ import { DatabaseModule } from 'src/database/database.module';
 @Module({
   imports:[DatabaseModule],
   controllers: [UploadController],
-  providers: [UploadService]
+  providers: [UploadService],
+  exports:[UploadService]
 })
 export class UploadModule {}

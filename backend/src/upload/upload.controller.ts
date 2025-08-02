@@ -5,7 +5,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('upload')
 export class UploadController {
     constructor(private readonly uploadService:UploadService){}
-    @Post('file')
+    @Post('preview')
     @UseInterceptors(FileInterceptor('file'))
     async uploadFile(@UploadedFile() file:Express.Multer.File){
         return this.uploadService.processFile(file);

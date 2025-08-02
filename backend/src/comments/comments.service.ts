@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
+import { CreateCommentDto } from '../dto/create-comment.dto';
+import { UpdateCommentDto } from '../dto/update-comment.dto';
 
 @Injectable()
 export class CommentsService {
@@ -20,6 +22,9 @@ export class CommentsService {
                     sentiment:{
                         sentiment,
                     }
+                },
+                include:{
+                    sentiment:true,
                 }
             })
         }
@@ -38,9 +43,15 @@ export class CommentsService {
                 }
             })
         }
-        return this.databaseService.comment.findMany();
+        return this.databaseService.comment.findMany(
+            {
+                include:{
+                    sentiment:true,
+                }
+            }
+        );
     }
-    async findOne(id:number){
+    async findOne(id:number){ // hadhi bich nesta3melha jul 31 2025
         
         return this.databaseService.comment.findUnique({
             where:{
@@ -48,12 +59,16 @@ export class CommentsService {
             }
         });
     }
-    async create(createCommentDto:Prisma.commentCreateInput){
+    async create(createCommentDto:CreateCommentDto){
+        console.log("Creating comment with DTO:", createCommentDto);
         return this.databaseService.comment.create({
-            data:createCommentDto
+            data:{
+                content: createCommentDto.content,
+                author: createCommentDto.author,
+            },
         });
     }
-    async update(id:number,updateCommentDto:Prisma.commentUpdateInput){
+    async update(id:number,updateCommentDto:UpdateCommentDto){
         return this.databaseService.comment.update({
             where:{
                 id,

@@ -6,6 +6,7 @@ import { DatabaseModule } from 'src/database/database.module';
 @Module({
   imports:[DatabaseModule],
   controllers: [CommentsController],
-  providers: [CommentsService]
+  providers: [CommentsService],
+  exports:[CommentsService],
 })
 export class CommentsModule {}
