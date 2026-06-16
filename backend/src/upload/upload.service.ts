@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/database/database.service';
 import * as csv from 'csv-parser';
 import * as path from 'path';
 import { Prisma } from '@prisma/client';
@@ -7,9 +6,7 @@ import { Readable } from 'stream';
 
 @Injectable() 
 export class UploadService {
-    constructor(private readonly databaseService:DatabaseService){}
     async processFile(file:Express.Multer.File){ 
-        //parse  
         const extension= path.extname(file.originalname);
         let comments:Prisma.commentCreateInput []=[];
         if(extension==='.csv'){

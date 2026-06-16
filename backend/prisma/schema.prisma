@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  //output   = "../generated/prisma"
 }
 
 datasource db {
@@ -15,6 +15,8 @@ model comment {
   createdAt DateTime        @default(now())
   updateAt  DateTime        @updatedAt
   sentiment AnalysisResult?
+  userId    Int?
+  user      user?           @relation(fields: [userId],references: [id])
 }
 
 model AnalysisResult {
@@ -23,4 +25,11 @@ model AnalysisResult {
   commentId Int     @unique
   score     String
   comment   comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+}
+model user {
+  id         Int     @id @default(autoincrement())
+  username   String 
+  email      String  @unique 
+  password   String
+  comment    comment[]
 }

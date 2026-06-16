@@ -9,7 +9,7 @@ const FileUpload = () => {
     const [file,setFile]=useState(null);
     const [msg,setMsg]=useState('');
     const [comments,setComments]=useState([]);
-    const {handleAllAnalysedComments}=useContext(DataContext)
+    const {handleAllAnalysedComments,userId}=useContext(DataContext);
 
     const handleChange=(e)=>{
         setFile(e.target.files[0]);
@@ -25,7 +25,7 @@ const FileUpload = () => {
         try{
             let res=await uploadFile(file);
             setComments(res.data);
-            localStorage.setItem('uploadedComments',JSON.stringify(res.data));
+            localStorage.setItem(`uploadedComments_${userId}`,JSON.stringify(res.data));
             setMsg('File uploaded successfully');
         }catch(error){
             setMsg('Uploaded failed');
@@ -33,34 +33,36 @@ const FileUpload = () => {
         }
     };
     useEffect(()=>{
-        const saved =JSON.parse(localStorage.getItem('uploadedComments')||'[]');
+        const saved =JSON.parse(localStorage.getItem(`uploadedComments_${userId}`)||'[]');
         setComments(saved);
     },[]);
     const removeAnalysedComment=(index)=>{
         const commentToAnalyse=comments[index];
         const updatedComments=comments.filter((_,i)=>i!==index);
         setComments(updatedComments);
-        localStorage.setItem('uploadedComments',JSON.stringify(updatedComments));
+        localStorage.setItem(`uploadedComments_${userId}`,JSON.stringify(updatedComments));
         return {  
             content:commentToAnalyse.content,
             author:commentToAnalyse.author,
+            userId:userId,
         };
     }
     const handleAnalyse=async(i)=>{
-        const bodyToSend=removeAnalysedComment(i);
-        await analyseOneComment(bodyToSend);
+        let bodyToSend=removeAnalysedComment(i);
+        const res=await analyseOneComment(bodyToSend);
+        console.log(res.data);
         await handleAllAnalysedComments();
     }
     const handleAnalyserTout=async()=>{
-        const commentToSend=comments;
+        const commentToSend=comments.map((comment)=>({...comment,userId: userId}));
         setComments([]);
         await analyseAllComments(commentToSend);  
-        localStorage.setItem('uploadedComments', JSON.stringify([])); 
+        localStorage.setItem(`uploadedComments_${userId}`, JSON.stringify([])); 
         await handleAllAnalysedComments();
     }
 return (
     <>
-        <div className='uploadFile'>
+        <div className='uploadFile exclude'>
             <h3> <SlCloudUpload className='uploadIcon'/> Importer vos commentaires</h3>
             <p>Téléchargez un fichier CSV ou JSON pour commencer l'analyse.</p>
             {msg==='File uploaded successfully' ? <p style={{color:'green',fontWeight:'bold',textAlign:'center',marginTop:"14px",marginBottom:"0px"}}>{msg}</p>:<p style={{color:'red',fontWeight:'bold',textAlign:'center',marginTop:"14px",marginBottom:"0px"}}>{msg}</p>}

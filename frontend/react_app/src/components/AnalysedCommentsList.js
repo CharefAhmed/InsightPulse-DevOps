@@ -17,7 +17,7 @@ const AnalyseCommentsList=()=>{
                 <div className='title'>
                     <h3>Tous les Commentaires Analysés</h3>
                     <p>Liste détaillée avec filtres de recherche par type de sentiment.</p>
-                    <div className='btnFiltre' tabIndex={0}  onClick={()=>{
+                    <div className='btnFiltre exclude' tabIndex={0}  onClick={()=>{
                             const btnIcon=document.getElementsByClassName('iconFiltre')[0];
                             btnIcon.classList.toggle('rotated');
                             const boxSent=document.getElementsByClassName('boxSentiment')[0];
@@ -59,15 +59,14 @@ const AnalyseCommentsList=()=>{
                                     <tr key={i}>
                                         <td>{comment.content}</td>
                                         <td>{comment.author}</td>
-                                        <td>{comment.sentiment.sentiment || 'N/A'}</td>
-                                        <td>{`${comment.sentiment.score || 'N/A'} / 5`}</td>
+                                        <td>{comment.sentiment?.sentiment || 'N/A'}</td>
+                                        <td>{`${comment.sentiment?.score || 'N/A'} / 5`}</td>
                                         <td>{comment.updateAt.toString().slice(0, 10)}</td>
                                     </tr>
                                 );
                             })}
                         </tbody>
                     </table>
-                    
                 </div>
                 
             </div>} 

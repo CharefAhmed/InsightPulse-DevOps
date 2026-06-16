@@ -1,6 +1,6 @@
 import api from "./axiosInstance";
 
-const getAllAnalysedComments=()=> {
-    return api.get('comments');
+const getAllAnalysedComments=(userId)=> {
+    return api.get(`comments?userId=${userId}`);
 }
 export default getAllAnalysedComments;

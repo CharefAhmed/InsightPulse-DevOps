@@ -6,11 +6,11 @@ services:
     container_name: ip_db
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ip_dashboard
+      POSTGRES_PASSWORD: ahmed123
+      POSTGRES_DB: InsightPulse
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -19,27 +19,44 @@ services:
     container_name: ip_backend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "5000:5000"
     environment:
-      DATABASE_URL: postgres://postgres:password@postgres:5432/ip_dashboard
+      DATABASE_URL: postgresql://postgres:ahmed123@postgres:5432/InsightPulse
       OPENAI_API_KEY: your_openai_key_here
+      OLLAMA_URL: http://ollama:11434
     depends_on:
       - postgres
+      - ollama
     volumes:
       - ./backend:/app
-    command: npm run start:dev
+      - /app/node_modules
+    command: sh -c "npx prisma generate && npx prisma db push && npm run start:dev"
 
   frontend:
-    build: ./frontend
+    build: ./frontend/react_app
     container_name: ip_frontend
     restart: unless-stopped
     ports:
-      - "5173:5173"
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - CHOKIDAR_USEPOLLING=true
     volumes:
-      - ./frontend:/app
-    command: npm run dev
+      - ./frontend/react_app:/app
+      - /app/node_modules
+    command: npm start
     depends_on:
       - backend
 
+  ollama:
+    image: ollama/ollama
+    container_name: ip_ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
 volumes:
   pgdata:
+  ollama_data:

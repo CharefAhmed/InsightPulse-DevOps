@@ -65,6 +65,8 @@ html{
   align-items: center;
 }
 .logo h2 {
+  color: black;
+  text-decoration: none;
   margin-left: 15px;
   display: inline-block;
 }
@@ -76,9 +78,8 @@ html{
 ul{
   list-style: none;
   display: flex;
-  width: 500px;
+  width: 649px;
   height: 45px;
-  justify-content: space-evenly;
   align-items: center;
   margin-right: 15px;
   font-size: 16px;
@@ -86,6 +87,16 @@ ul{
 }
 ul .active{
   perspective: 300px;
+  color: white; 
+}
+ul li {
+  margin-left: auto;
+  margin-right: auto;
+} 
+ul .welcomeText{
+  font-weight: 800;
+  font-size: 17px;
+  color: #d39538;
 }
 ul li a {
   text-decoration: none;
@@ -101,21 +112,27 @@ ul li a:hover{
 }
 .btn {
   all: unset;
+  display: flex;
   width: 125px;
-  height: 30px; 
+  height: 40px; 
   background-color: var(--mainColor);
   color: white;
-  padding: 5px;
-  margin-left: 5px ;
-  margin-right: 5px;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  text-align: center;
+  align-items: center;
+  justify-content: center;
   transition-duration: 0.2s;
 }
+ul .active{
+  color: white;
+  perspective: 300px;
+}
 .btn:hover{
-  transform: translate3d(0,0,15px);
+  transform: translate3d(0,0,15px); 
+  background-color: var(--mainColor);
+  color: white;
+  border-radius: 8px;
 }
 .landing  {
   width: 100%;
@@ -162,7 +179,6 @@ ul li a:hover{
 }
 .landing  .intro-btn .colored{
   background-color: var(--mainColor);
-  color: white;
   font-weight: bold;
   text-align: center;
   width: 200px;
@@ -170,10 +186,18 @@ ul li a:hover{
   padding: 6px;
   margin-right:25px ;
   border-radius: 8px;
-  
+
+}
+.colored a{
+  text-decoration: none;
+  color: white;
 }
 .arrowIcon{
   vertical-align: middle;
+}
+.landing  .intro-btn .not-colored a{
+  text-decoration: none;
+  color: black;
 }
 .landing  .intro-btn .not-colored{
   outline: solid 1px black;
@@ -400,20 +424,16 @@ footer{
 .pageContainer{
   display: flex;
   flex-direction: column;
-  margin-top: 70px;
+  margin-top: 112px;
   justify-content: space-around;
   align-items: center;
   flex-wrap: wrap;
   row-gap:25px ;
-  
+  perspective: 300px;
 }
 .uploadFile{
-  /*position: absolute;*/
   width:930px;
   height: 310px;
-  /*top: 15%;
-  left: 50%;
-  transform: translateX(-50%);*/
   background-color: #eaeff1;
   border-radius: 8px;
   display: flex;
@@ -534,7 +554,7 @@ th {
   font-size: large;
 }
 .btnTd{
-  border:0px;
+  border:none;
   width: 120px;
   perspective: 100px;
 }
@@ -585,9 +605,7 @@ th {
   display: flex;
   flex-direction: column;
   box-shadow: 0 0 8px 1px #6c798a;
-  
-  height: 710px;
-  /* position: relative; */
+  height: 720px;
 }
 .analysedComments .introText{
   display: flex;
@@ -802,6 +820,7 @@ th {
 .btnFiltre .iconFiltre{
   color: gray;
   font-size: 22px;
+  transition:  0.5s  ease-in-out;
 }
 .rotated {
   transform: rotate(180deg);
@@ -842,6 +861,130 @@ th {
 .analysedCommentsBox table{
   width: 100%;
 }
-#analysedComments{
-  margin-bottom:28px ;
+.loginContainer{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  width:930px;
+  height: 480px;
+  background-color: #eaeff1;
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  column-gap: 5%;
+  box-shadow: 0 0 8px 1px #6c798a;
+}
+.loginContainer >*{
+  width: 47.5%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+  flex-wrap: wrap;
+}
+.loginContainer form{
+  width: 80%;
+  height: 80%;
+  margin-top: 30px;
+}
+.signUp form{
+  display: none;
+  
+}
+.loginContainer h1{
+  text-align: center;
+}
+.loginContainer .inputBox{
+  margin-top: 35px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 40px;
+}
+.loginContainer .inputBox >*{
+  height: 32px;
+  padding-left: 10px;
+  border-radius: 10px;
+  border: 1px solid gray;
+  outline: none;
+}
+.loginContainer input:focus{
+  box-shadow:  0px 0px 4px 1px gray inset;
+  border: none;
+}
+.rightContent,.leftContent{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--mainColor);
+  color: white;
+}
+.rightContent{
+  border-radius: 100px 10px 10px 100px;
+}
+.leftContent{
+  border-radius: 10px 100px 100px 10px;
+}
+.loginContainer p{
+  font-size: 15px;
+  width: 395px;
+  text-align: center;
+}
+.sideContentBtn{
+  margin-top: 20px;
+  all: none;
+  width: 118px;
+  height: 40px;
+  background-color: var(--mainColor);
+  color: white;
+  font-weight: 900;
+  border: 2px solid white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.6s ease;
+}
+.sideContentBtn:hover{
+  color: var(--mainColor);
+  background-color: white;
+}
+form .resMsg{
+  visibility:hidden;
+  height: 20px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+.loginContainer form button{
+  background-color: #ff992f;
+  color: white ;
+  font-weight: 900 ;
+  font-size: 16px;
+  border-color: #ff992f;
+  border: none !important;
+  cursor: pointer;
+}
+.loginContainer form button:hover{
+      box-shadow: 1px 1px 2px 1px #ff992f;
+}
+.downloadBtn{
+  all: unset;
+  width: 125px;
+  padding: 7px;
+  text-align: center;
+  margin-left: auto;
+  background-color: #885f34f5;
+  color: white;
+  font-weight: 600;
+  margin-right: auto;
+  margin-bottom: 13px;
+  border-radius: 8px;
+  transition-duration: 0.2s;
+}
+.downloadBtn:hover{
+  cursor: pointer;
+  transform: translate3d(0,-1px,-1px);
 }

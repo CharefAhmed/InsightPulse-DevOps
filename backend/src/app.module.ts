@@ -6,12 +6,14 @@ import { DatabaseModule } from './database/database.module';
 import { UploadModule } from './upload/upload.module';
 import { SentimentModule } from './sentiment/sentiment.module';
 import { ConfigModule } from '@nestjs/config';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env', // This should be relative to process.cwd(), which is `backend/` when you run `npm start`
-    }),CommentsModule, DatabaseModule, UploadModule, SentimentModule],
+      envFilePath: '.env', 
+    }),CommentsModule, DatabaseModule, UploadModule, SentimentModule, UsersModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

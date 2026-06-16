@@ -2,21 +2,27 @@ import Header from "../components/Header"
 import FileUpload from "../components/FileUpload"
 import AnalyseResult from "../components/AnalyseResult"
 import AnalyseCommentsList from "../components/AnalysedCommentsList"
-import { DataProvider } from "../context/DataContext"
+import { useContext } from "react";
+import DataContext from "../context/DataContext";
 
 const ImportPage = () => {
+    const { isLoggedIn } = useContext(DataContext);
+    const {printRef} = useContext(DataContext);
+    const {handleDownloadPDF} = useContext(DataContext);
+
+
+    
 return (
-<div>
+    isLoggedIn && <div>
     <Header showRightContent={false} title={"Import & Analyse des Commentaires"}/>
-    <DataProvider>
-        <div className="pageContainer">
+        <div className="pageContainer" ref={printRef}>
             <FileUpload/> 
-            <AnalyseResult/>
+            <AnalyseResult />
             <AnalyseCommentsList/>
+            <button className='downloadBtn exclude' onClick={handleDownloadPDF}>Download</button>
         </div>
-    </DataProvider>
 </div>
-)
+);
 }
 
 export default ImportPage

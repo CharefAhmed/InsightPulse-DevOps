@@ -6,20 +6,27 @@ import { TbMessageCircleSearch } from "react-icons/tb";
 import { IoMdTrendingUp  } from "react-icons/io";
 import { HiOutlineShieldCheck } from "react-icons/hi2";
 import { Link } from "react-router-dom";
+import DataContext from "../context/DataContext";
+import { useContext } from "react";
 
 const Content = () => {
+    const {isLoggedIn,handleLogOut} = useContext(DataContext);
     return (
     <div className="content">
         <div className="landing">
-            <div class="intro-text">
+            <div className="intro-text">
                 <h1><span>InsightPulse :</span>L'Intelligence au Service de vos Données Clients. </h1>
                 <p>InsightPulse transforme les retours clients bruts en insights clairs 
                     et actionnables grâce à l'IA.
                 </p>
             </div>
             <div className="intro-btn">
-                <button className="colored"><Link to="/import" style={{textDecoration:"none",color:"white"}}>Commencer l'analyse <FaArrowRight className="arrowIcon" /></Link> </button>
-                <button className="not-colored"><a href="#Fonctions" style={{textDecoration:"none",color:"black"}}>En savoir plus</a></button>
+            {isLoggedIn ? (
+                <button className="colored" ><Link to="/import" >Commencer l'analyse <FaArrowRight className="arrowIcon" /></Link></button>
+                ):(
+                <button className="colored" ><Link to="/login" >Commencer l'analyse <FaArrowRight className="arrowIcon" /></Link></button>) }
+                
+                <button className="not-colored"><a href="#Fonctions" >En savoir plus</a></button>
             </div>
         </div>
         <div className="fonctions" id="Fonctions">
@@ -92,8 +99,11 @@ const Content = () => {
             
                 <h1>Prêt à transformer vos commentaires <br></br>en actions ?</h1>
                 <p>Commencez dès maintenant à utiliser InsightPulse et découvrez le potentiel de vos données clients.</p>
-                <Link to="/import" style={{textDecoration:"none"}}><button>Démarrer l'analyse</button></Link>
-            
+                {isLoggedIn ? (<Link to="/import" style={{textDecoration:"none"}}><button>Démarrer l'analyse</button></Link>
+                ):(
+                    <Link to="/login" style={{textDecoration:"none"}}><button>Démarrer l'analyse</button></Link>
+                )
+            }
         </div>
         
         <footer>
