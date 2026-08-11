@@ -1,17 +1,24 @@
-﻿{
+{
   "ref": "refs/tags/v1.0.0",
   "before": "0000000000000000000000000000000000000000",
-  "after":  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "after": "70d2ef4bec7cea01c1fb663740181645621e4fed",
   "repository": {
-    "name": "InsightPulse",
-    "full_name": "CharefAhmed/InsightPulse",
-    "owner": { "login": "CharefAhmed" },
-    "private": false
+    "name": "InsightPulse-DevOps",
+    "full_name": "CharefAhmed/InsightPulse-DevOps",
+    "owner": {
+      "login": "CharefAhmed"
+    },
+    "private": true
   },
-  "pusher": { "name": "CharefAhmed" },
+  "pusher": {
+    "name": "CharefAhmed"
+  },
   "head_commit": {
-    "id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "id": "70d2ef4bec7cea01c1fb663740181645621e4fed",
     "message": "chore: release v1.0.0",
-    "author": { "name": "Ahmed", "email": "ahmed@example.com" }
+    "author": {
+      "name": "Ahmed",
+      "email": "ahmed@example.com"
+    }
   }
 }

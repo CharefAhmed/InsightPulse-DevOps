@@ -1,24 +1,18 @@
 name: Build & Push Docker Images
 
 on:
-  # Se déclenche uniquement lorsqu'une Release est publiée
-  # (c'est-à-dire quand Release Please crée un nouveau Tag)
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 env:
   REGISTRY: ghcr.io
-  # Nom du dépôt en minuscules, requis par ghcr.io
   IMAGE_OWNER: ${{ github.repository_owner }}
 
 jobs:
-  # ─────────────────────────────────────────────────────────
   # Build & Push – Matrix sur les deux services
-  # Chaque entrée de la matrix correspond à une image Docker
-  # ─────────────────────────────────────────────────────────
   build-and-push:
-    name: 🐳 Build & Push – ${{ matrix.service.name }}
+    name: Build & Push – ${{ matrix.service.name }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,8 +48,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      # Authentification auprès de GitHub Container Registry
-      # Utilise GITHUB_TOKEN, aucun secret supplémentaire requis
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -70,11 +62,11 @@ jobs:
       - name: Build and push ${{ matrix.service.name }} image
         uses: docker/build-push-action@v6
         with:
-          context:    ${{ matrix.service.context }}
-          file:       ${{ matrix.service.dockerfile }}
-          push:       true
-          tags:       ${{ steps.meta.outputs.tags }}
-          labels:     ${{ steps.meta.outputs.labels }}
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           # Cache entre les runs pour accélérer les builds
           cache-from: type=gha
-          cache-to:   type=gha,mode=max
+          cache-to: type=gha,mode=max

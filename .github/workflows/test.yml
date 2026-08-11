@@ -1,20 +1,19 @@
-name: CI – Pull Request
+name: Tests Workflow on Pull Request
 
 on:
   pull_request:
     branches:
       - main
-
+  push:
+    branches:
+      - main
 jobs:
-  # ─────────────────────────────────────────────────────────
-  # JOB 1 : Paths Filter
-  # Détermine quels composants ont été modifiés dans la PR
-  # ─────────────────────────────────────────────────────────
+  # Détermine quels composants ont été modifiés
   filter:
-    name: 🔍 Detect Changes
+    name: Detect Changes Filter Job
     runs-on: ubuntu-latest
     outputs:
-      backend:  ${{ steps.changes.outputs.backend }}
+      backend: ${{ steps.changes.outputs.backend }}
       frontend: ${{ steps.changes.outputs.frontend }}
     steps:
       - name: Checkout code
@@ -30,18 +29,13 @@ jobs:
             frontend:
               - 'frontend/**'
 
-  # ─────────────────────────────────────────────────────────
-  # JOB 2 : Matrix CI
   # S'exécute dynamiquement uniquement pour les composants
   # qui ont des changements, détectés par le job "filter"
-  # ─────────────────────────────────────────────────────────
   ci:
-    name: 🧪 ${{ matrix.component.name }} – Lint & Test
+    name: ${{ matrix.component.name }} – Lint & Test
     needs: filter
     runs-on: ubuntu-latest
 
-    # La stratégie matrix est construite dynamiquement.
-    # Chaque composant n'est inclus que si le filtre le détecte comme modifié.
     strategy:
       fail-fast: false
       matrix:
@@ -49,14 +43,14 @@ jobs:
           - name: Backend
             path: backend
             changed: ${{ needs.filter.outputs.backend }}
-            node-version: '20.x'
+            node-version: "20.x"
             lint-cmd: npm run lint
             test-cmd: npm test -- --passWithNoTests
 
           - name: Frontend
             path: frontend/react_app
             changed: ${{ needs.filter.outputs.frontend }}
-            node-version: '20.x'
+            node-version: "20.x"
             lint-cmd: npx eslint "src/**/*.{js,jsx}"
             test-cmd: npm test -- --watchAll=false --passWithNoTests
 
@@ -79,7 +73,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.component.node-version }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: ${{ matrix.component.path }}/package-lock.json
 
       - name: Install dependencies

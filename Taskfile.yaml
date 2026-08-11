@@ -23,6 +23,7 @@ tasks:
           --workflows {{.WORKFLOWS}}/test.yml
           --platform ubuntu-latest={{.IMAGE}}
           --secret-file {{.SECRETS}}
+          --eventpath {{.EVENTS}}/pull-request.json
 
   release-please:
     desc: Run release-please.yml locally (push to main) - requires valid GITHUB_TOKEN

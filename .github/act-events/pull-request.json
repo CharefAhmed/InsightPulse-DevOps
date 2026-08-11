@@ -1,0 +1,12 @@
+{
+  "repository": {
+    "name": "InsightPulse-DevOps",
+    "full_name": "CharefAhmed/InsightPulse-DevOps",
+    "default_branch": "main"
+  },
+  "pull_request": {
+    "base": {
+      "ref": "main"
+    }
+  }
+}
