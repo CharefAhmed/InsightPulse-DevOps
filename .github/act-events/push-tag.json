@@ -1,0 +1,17 @@
+﻿{
+  "ref": "refs/tags/v1.0.0",
+  "before": "0000000000000000000000000000000000000000",
+  "after":  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "repository": {
+    "name": "InsightPulse",
+    "full_name": "CharefAhmed/InsightPulse",
+    "owner": { "login": "CharefAhmed" },
+    "private": false
+  },
+  "pusher": { "name": "CharefAhmed" },
+  "head_commit": {
+    "id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "message": "chore: release v1.0.0",
+    "author": { "name": "Ahmed", "email": "ahmed@example.com" }
+  }
+}

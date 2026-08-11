@@ -1,0 +1,39 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # ─────────────────────────────────────────────────────────
+  # Release Please analyse les commits sur "main" (qui doivent
+  # suivre la convention Conventional Commits : feat:, fix:, etc.)
+  # et gère automatiquement :
+  #   - La création / mise à jour d'une PR de Release
+  #   - La mise à jour des versions dans package.json
+  #   - La génération du fichier CHANGELOG.md
+  #   - La création d'un Tag GitHub (ex: v1.2.0) lors du merge
+  # ─────────────────────────────────────────────────────────
+  release-please:
+    name: 🚀 Release Please
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name:        ${{ steps.release.outputs.tag_name }}
+    steps:
+      - name: Run Release Please
+        id: release
+        uses: google-github-actions/release-please-action@v4
+        with:
+          # Type de release : "node" met à jour les champs "version"
+          # dans package.json automatiquement
+          release-type: node
+          # Fichier de configuration avancée (optionnel mais recommandé
+          # pour un monorepo avec backend + frontend)
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json

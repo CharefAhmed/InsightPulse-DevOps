@@ -1,0 +1,12 @@
+{
+  "packages": {
+    "backend": {
+      "release-type": "node",
+      "package-name": "backend"
+    },
+    "frontend/react_app": {
+      "release-type": "node",
+      "package-name": "react_app"
+    }
+  }
+}

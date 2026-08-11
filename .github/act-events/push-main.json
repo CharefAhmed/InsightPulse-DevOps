@@ -1,0 +1,19 @@
+﻿{
+  "ref": "refs/heads/main",
+  "before": "0000000000000000000000000000000000000000",
+  "after":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "repository": {
+    "name": "InsightPulse",
+    "full_name": "CharefAhmed/InsightPulse",
+    "owner": { "login": "CharefAhmed" },
+    "private": false
+  },
+  "pusher": { "name": "CharefAhmed" },
+  "commits": [
+    {
+      "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "message": "feat: initial release",
+      "author": { "name": "Ahmed", "email": "ahmed@example.com" }
+    }
+  ]
+}

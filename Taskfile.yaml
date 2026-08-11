@@ -1,0 +1,50 @@
+# Taskfile.yaml - InsightPulse
+# Requires: act (nektos/act) + Docker Desktop running
+# Usage: task <task-name>
+
+version: '3'
+
+vars:
+  IMAGE:     catthehacker/ubuntu:act-22.04
+  SECRETS:   .secrets
+  EVENTS:    .github/act-events
+  WORKFLOWS: .github/workflows
+
+tasks:
+  default:
+    silent: true
+    cmds:
+      - task --list
+
+  test:
+    desc: Run test.yml locally (pull_request event)
+    cmds:
+      - act pull_request
+          --workflows {{.WORKFLOWS}}/test.yml
+          --platform ubuntu-latest={{.IMAGE}}
+          --secret-file {{.SECRETS}}
+
+  release-please:
+    desc: Run release-please.yml locally (push to main) - requires valid GITHUB_TOKEN
+    cmds:
+      - act push
+          --workflows {{.WORKFLOWS}}/release-please.yml
+          --platform ubuntu-latest={{.IMAGE}}
+          --secret-file {{.SECRETS}}
+          --eventpath {{.EVENTS}}/push-main.json
+
+  build-push:
+    desc: Run build-push.yml locally (tag push event)
+    cmds:
+      - act push
+          --workflows {{.WORKFLOWS}}/build-push.yml
+          --platform ubuntu-latest={{.IMAGE}}
+          --secret-file {{.SECRETS}}
+          --eventpath {{.EVENTS}}/push-tag.json
+
+  dry-run:
+    desc: Dry-run all workflows (shows steps, no execution)
+    cmds:
+      - act pull_request --workflows {{.WORKFLOWS}}/test.yml --dryrun
+      - act push --workflows {{.WORKFLOWS}}/release-please.yml --dryrun
+      - act push --workflows {{.WORKFLOWS}}/build-push.yml --dryrun --eventpath {{.EVENTS}}/push-tag.json
