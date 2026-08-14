@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.0.0...v1.0.1) (2026-08-14)
+
+
+### Bug Fixes
+
+* remove unused imports to resolve linting errors ([afd1834](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/afd18348fc389f2e260dd84fea271bf49370b789))
+
 ## 1.0.0 (2026-08-14)
 
 
