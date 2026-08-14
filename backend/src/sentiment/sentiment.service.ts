@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import OpenAI from 'openai';
-import { Prisma } from '@prisma/client';
 import axios from 'axios';
 import { CommentsService } from 'src/comments/comments.service';
 import { CreateCommentDto } from '../dto/create-comment.dto';
