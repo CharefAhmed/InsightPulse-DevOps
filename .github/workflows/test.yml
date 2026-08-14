@@ -45,14 +45,14 @@ jobs:
             changed: ${{ needs.filter.outputs.backend }}
             node-version: "20.x"
             lint-cmd: npm run lint
-            test-cmd: npm test -- --passWithNoTests
+            test-cmd: npm test -- --forceExit
 
           - name: Frontend
             path: frontend/react_app
             changed: ${{ needs.filter.outputs.frontend }}
             node-version: "20.x"
             lint-cmd: npx eslint "src/**/*.{js,jsx}"
-            test-cmd: npm test -- --watchAll=false --passWithNoTests
+            test-cmd: npm test -- --watchAll=false
 
     # Ce job est ignoré si le composant correspondant n'a pas changé
     if: >

@@ -43,4 +43,6 @@ backend/.DS_Store
 
 # === Docker / Deployment ===
 *.local
-docker-compose.override.yml
+docker-compose.yml
+
+
