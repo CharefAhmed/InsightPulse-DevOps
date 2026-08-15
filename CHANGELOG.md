@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.0.1...v1.1.0) (2026-08-15)
+
+
+### Features
+
+* **backend:** add health, ready, version and metrics endpoints for Kubernetes and observability ([7b555f1](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/7b555f1fbb9496da16c808cdcfdab4497ef84e20))
+
 ## [1.0.1](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.0.0...v1.0.1) (2026-08-14)
 
 
