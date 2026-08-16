@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.0...v1.1.1) (2026-08-16)
+
+
+### Bug Fixes
+
+* **backend:** bind NestJS to 0.0.0.0 to fix Docker connectivity ([5a7f806](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/5a7f806a58256f27c82b4da4e21598c61f3522ca))
+
 ## [1.1.0](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.0.1...v1.1.0) (2026-08-15)
 
 
