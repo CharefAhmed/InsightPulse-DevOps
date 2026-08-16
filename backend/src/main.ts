@@ -10,6 +10,6 @@ async function bootstrap() {
     origin: ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
   });
-  await app.listen(5000);
+  await app.listen(5000, '0.0.0.0');
 }
 bootstrap();
