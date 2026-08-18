@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.9](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.8...v1.1.9) (2026-08-18)
+
+
+### Bug Fixes
+
+* patch OS CVEs via apt/apk upgrade, update npm to fix tar CVE, ignore unfixable CVEs in Trivy ([09b752e](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/09b752eb94e130cd2374a4e7e0377d1fa5cec873))
+
 ## [1.1.8](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.7...v1.1.8) (2026-08-18)
 
 
