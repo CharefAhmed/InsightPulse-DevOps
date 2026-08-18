@@ -1,8 +1,7 @@
-FROM node:20-slim
+FROM node:24-slim
 
 WORKDIR /app
 
-RUN npm install -g npm@latest
 COPY package*.json ./
 RUN npm install
 
