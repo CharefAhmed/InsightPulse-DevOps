@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.9...v1.2.0) (2026-08-18)
+
+
+### Features
+
+* **ci:** enforce Trivy security gate before push with all CRITICAL CVEs remediated ([e1866fc](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/e1866fcc2acf3b60332f9686d3349fac49946989))
+
 ## [1.1.9](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.8...v1.1.9) (2026-08-18)
 
 
