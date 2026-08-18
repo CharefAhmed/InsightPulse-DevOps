@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.8](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.7...v1.1.8) (2026-08-18)
+
+
+### Bug Fixes
+
+* use exact image tag from metadata-action for Trivy scan to fix empty version errors on workflow_dispatch ([897ee11](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/897ee117b31a57e10cc0cee701e90e01b6f2e396))
+
 ## [1.1.7](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.6...v1.1.7) (2026-08-18)
 
 
