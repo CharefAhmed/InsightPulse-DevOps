@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.2...v1.1.3) (2026-08-18)
+
+
+### Bug Fixes
+
+* lowercase IMAGE_OWNER in trivy image-ref ([cb3b808](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/cb3b8080f3d65b138f4f0485d6e109784a58f52f))
+
 ## [1.1.2](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.1...v1.1.2) (2026-08-18)
 
 
