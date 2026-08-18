@@ -81,6 +81,7 @@ jobs:
           format: table
           output: trivy-report-${{ matrix.service.image-name }}.txt
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
           exit-code: "0"
 
       - name: Trivy – Scan ${{ matrix.service.name }} image (SARIF)
@@ -91,6 +92,7 @@ jobs:
           format: sarif
           output: trivy-report-${{ matrix.service.image-name }}.sarif
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
           exit-code: "0"
 
       - name: Upload Trivy report – ${{ matrix.service.name }}
