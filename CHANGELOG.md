@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.3...v1.1.4) (2026-08-18)
+
+
+### Bug Fixes
+
+* remediate CRITICAL CVEs in backend and frontend ([1bb6141](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/1bb6141545ac9dd046dd265999fe2df010235b22))
+
 ## [1.1.3](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.2...v1.1.3) (2026-08-18)
 
 
