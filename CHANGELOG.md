@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.4...v1.1.5) (2026-08-18)
+
+
+### Bug Fixes
+
+* update global npm in Dockerfiles to patch pre-installed tar vulnerability ([8b8a7d4](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/8b8a7d4b311e761e6297c6b7a9404ff682558374))
+
 ## [1.1.4](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.3...v1.1.4) (2026-08-18)
 
 
