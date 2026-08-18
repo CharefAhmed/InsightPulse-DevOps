@@ -68,10 +68,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Set lowercase image owner
+        run: echo "IMAGE_OWNER_LC=${IMAGE_OWNER,,}" >> $GITHUB_ENV
+
       - name: Trivy – Scan ${{ matrix.service.name }} image (table report)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service.image-name }}:${{ steps.meta.outputs.version }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ matrix.service.image-name }}:${{ steps.meta.outputs.version }}
           format: table
           output: trivy-report-${{ matrix.service.image-name }}.txt
           severity: CRITICAL,HIGH
@@ -79,8 +82,9 @@ jobs:
 
       - name: Trivy – Scan ${{ matrix.service.name }} image (SARIF)
         uses: aquasecurity/trivy-action@master
+        if: always()
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service.image-name }}:${{ steps.meta.outputs.version }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ matrix.service.image-name }}:${{ steps.meta.outputs.version }}
           format: sarif
           output: trivy-report-${{ matrix.service.image-name }}.sarif
           severity: CRITICAL,HIGH
