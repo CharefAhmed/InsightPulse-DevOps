@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.1...v1.1.2) (2026-08-18)
+
+
+### Bug Fixes
+
+* update trivy-action to v0.28.0 ([00e1a7c](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/00e1a7c40e17f8d4bba229126a45c9739584f99d))
+* use master branch for trivy-action to resolve setup-trivy dependency ([c8cd4aa](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/c8cd4aaba335626ae93c856d15404ed51f4c38a2))
+
 ## [1.1.1](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.0...v1.1.1) (2026-08-16)
 
 
