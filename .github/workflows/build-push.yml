@@ -45,6 +45,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -56,8 +57,37 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push ${{ matrix.service.name }} image
+      - name: Build ${{ matrix.service.name }} image (local, no push)
         id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.dockerfile }}
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Resolve image reference for Trivy
+        id: image_ref
+        run: |
+          FIRST_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          echo "tag=$FIRST_TAG" >> $GITHUB_OUTPUT
+      - name: Trivy – Security Gate (CRITICAL, blocks push)
+        id: trivy_gate
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.image_ref.outputs.tag }}
+          format: table
+          output: trivy-report-${{ matrix.service.image-name }}.txt
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Push ${{ matrix.service.name }} image to GHCR
+        if: success()
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.service.context }}
@@ -68,23 +98,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Determine exact image reference for Trivy
-        id: image_ref
-        run: |
-          TAGS="${{ steps.meta.outputs.tags }}"
-          FIRST_TAG=$(echo "$TAGS" | head -n 1)
-          echo "tag=$FIRST_TAG" >> $GITHUB_OUTPUT
-      - name: Trivy – Scan ${{ matrix.service.name }} image (table report)
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ steps.image_ref.outputs.tag }}
-          format: table
-          output: trivy-report-${{ matrix.service.image-name }}.txt
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: "0"
-
-      - name: Trivy – Scan ${{ matrix.service.name }} image (SARIF)
+      - name: Trivy – Full Report (CRITICAL + HIGH, for artifact)
         uses: aquasecurity/trivy-action@master
         if: always()
         with:
@@ -95,13 +109,13 @@ jobs:
           ignore-unfixed: true
           exit-code: "0"
 
-      - name: Upload Trivy report – ${{ matrix.service.name }}
+      - name: Upload Trivy table report – ${{ matrix.service.name }}
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: trivy-report-${{ matrix.service.image-name }}
           path: trivy-report-${{ matrix.service.image-name }}.txt
-          retention-days: 0
+          retention-days: 30
 
       - name: Upload SARIF to GitHub Security tab – ${{ matrix.service.name }}
         uses: github/codeql-action/upload-sarif@v3
