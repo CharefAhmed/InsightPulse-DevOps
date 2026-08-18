@@ -10,13 +10,13 @@ env:
   IMAGE_OWNER: ${{ github.repository_owner }}
 
 jobs:
-  # Build & Push – Matrix sur les deux services
   build-and-push:
     name: Build & Push – ${{ matrix.service.name }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+      security-events: write
 
     strategy:
       fail-fast: false
@@ -36,8 +36,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Extrait les métadonnées (tags, labels) pour l'image Docker.
-      # Génère automatiquement les tags : latest + numéro de version du tag Git
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -55,11 +53,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Active BuildKit pour des builds plus rapides et le cache
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push ${{ matrix.service.name }} image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.service.context }}
@@ -67,6 +65,38 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Cache entre les runs pour accélérer les builds
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Trivy – Scan ${{ matrix.service.name }} image (table report)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service.image-name }}:${{ steps.meta.outputs.version }}
+          format: table
+          output: trivy-report-${{ matrix.service.image-name }}.txt
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+
+      - name: Trivy – Scan ${{ matrix.service.name }} image (SARIF)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service.image-name }}:${{ steps.meta.outputs.version }}
+          format: sarif
+          output: trivy-report-${{ matrix.service.image-name }}.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+
+      - name: Upload Trivy report – ${{ matrix.service.name }}
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-report-${{ matrix.service.image-name }}
+          path: trivy-report-${{ matrix.service.image-name }}.txt
+          retention-days: 0
+
+      - name: Upload SARIF to GitHub Security tab – ${{ matrix.service.name }}
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-report-${{ matrix.service.image-name }}.sarif
+          category: trivy-${{ matrix.service.image-name }}
