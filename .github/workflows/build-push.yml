@@ -68,10 +68,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Determine exact image reference for Trivy
+        id: image_ref
+        run: |
+          TAGS="${{ steps.meta.outputs.tags }}"
+          FIRST_TAG=$(echo "$TAGS" | head -n 1)
+          echo "tag=$FIRST_TAG" >> $GITHUB_OUTPUT
       - name: Trivy – Scan ${{ matrix.service.name }} image (table report)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service.image-name }}:${{ steps.meta.outputs.version }}
+          image-ref: ${{ steps.image_ref.outputs.tag }}
           format: table
           output: trivy-report-${{ matrix.service.image-name }}.txt
           severity: CRITICAL,HIGH
@@ -81,7 +87,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         if: always()
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service.image-name }}:${{ steps.meta.outputs.version }}
+          image-ref: ${{ steps.image_ref.outputs.tag }}
           format: sarif
           output: trivy-report-${{ matrix.service.image-name }}.sarif
           severity: CRITICAL,HIGH
