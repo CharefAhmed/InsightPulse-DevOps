@@ -11,7 +11,7 @@
     "chart.js": "^4.5.0",
     "html2canvas": "^1.4.1",
     "js-cookie": "^3.0.5",
-    "jspdf": "^3.0.1",
+    "jspdf": "^4.2.1",
     "jwt-decode": "^4.0.0",
     "react": "^19.1.0",
     "react-chartjs-2": "^5.3.0",
@@ -45,6 +45,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "overrides": {
+    "form-data": "^3.0.4",
+    "shell-quote": "^1.8.4",
+    "tar": "^7.5.19",
+    "websocket-driver": "^0.7.5"
   },
   "jest": {
     "moduleNameMapper": {
