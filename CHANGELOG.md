@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.5...v1.1.6) (2026-08-18)
+
+
+### Bug Fixes
+
+* revert faulty lowercase IMAGE_OWNER logic which broke Trivy scan ([78f726b](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/78f726b84d18cef478c077a7a05971a838c56483))
+
 ## [1.1.5](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.4...v1.1.5) (2026-08-18)
 
 
