@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.7](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.6...v1.1.7) (2026-08-18)
+
+
+### Bug Fixes
+
+* remove npm@latest and upgrade to node:24 to solve docker build failure and eliminate native tar CVE ([e88b22f](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/e88b22f966ec2cbd6b374e5d4e330a4aa0741e97))
+
 ## [1.1.6](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.5...v1.1.6) (2026-08-18)
 
 
