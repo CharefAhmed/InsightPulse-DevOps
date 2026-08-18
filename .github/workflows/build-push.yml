@@ -88,15 +88,10 @@ jobs:
 
       - name: Push ${{ matrix.service.name }} image to GHCR
         if: success()
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ matrix.service.context }}
-          file: ${{ matrix.service.dockerfile }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        run: |
+          for tag in $(echo "${{ steps.meta.outputs.tags }}"); do
+            docker push "$tag"
+          done
 
       - name: Trivy – Full Report (CRITICAL + HIGH, for artifact)
         uses: aquasecurity/trivy-action@master
