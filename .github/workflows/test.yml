@@ -1,4 +1,4 @@
-name: Tests Workflow on Pull Request
+name: Tests Workflow
 
 on:
   pull_request:
@@ -13,7 +13,6 @@ permissions:
   pull-requests: read
 
 jobs:
-  # Détermine quels composants ont été modifiés
   filter:
     name: Detect Changes Filter Job
     runs-on: ubuntu-latest
@@ -34,8 +33,6 @@ jobs:
             frontend:
               - 'frontend/**'
 
-  # S'exécute dynamiquement uniquement pour les composants
-  # qui ont des changements, détectés par le job "filter"
   ci:
     name: ${{ matrix.component.name }} – Lint & Test
     needs: filter
@@ -59,7 +56,6 @@ jobs:
             lint-cmd: npx eslint "src/**/*.{js,jsx}"
             test-cmd: npm test -- --watchAll=false
 
-    # Ce job est ignoré si le composant correspondant n'a pas changé
     if: >
       needs.filter.outputs.backend == 'true' ||
       needs.filter.outputs.frontend == 'true'

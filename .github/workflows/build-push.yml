@@ -36,6 +36,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Dependency Scan (npm audit)
+        working-directory: ${{ matrix.service.context }}
+        run: npm audit --audit-level=critical
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5

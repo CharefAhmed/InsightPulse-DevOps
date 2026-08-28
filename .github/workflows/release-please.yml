@@ -10,13 +10,13 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Release Please analyse les commits sur "main" (qui doivent
-  # suivre la convention Conventional Commits : feat:, fix:, etc.)
-  # et gère automatiquement :
-  #   - La création / mise à jour d'une PR de Release
-  #   - La mise à jour des versions dans package.json
-  #   - La génération du fichier CHANGELOG.md
-  #   - La création d'un Tag GitHub (ex: v1.2.0) lors du merge
+  # Release Please analyzes commits on "main" (which must
+  # follow the Conventional Commits specification: feat:, fix:, etc.)
+  # and automatically manages:
+  # - Creating / updating a Release PR
+  # - Updating version numbers in package.json
+  # - Generating the CHANGELOG.md file
+  # - Creating a GitHub Tag (e.g., v1.2.0) upon merging
   release-please:
     name: Release Please
     runs-on: ubuntu-latest
