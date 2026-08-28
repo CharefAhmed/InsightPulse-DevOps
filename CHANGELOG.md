@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.2.0...v1.3.0) (2026-08-28)
+
+
+### Features
+
+* **ci:** add npm audit gate to build-push.yml ([85db112](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/85db112370214b9ccb74b90b6353ae02bea427f1))
+
 ## [1.2.0](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.1.9...v1.2.0) (2026-08-18)
 
 
