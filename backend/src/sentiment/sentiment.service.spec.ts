@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SentimentService } from './sentiment.service';
 import { DatabaseService } from '../database/database.service';
 import { CommentsService } from '../comments/comments.service';
-import Groq from 'groq-sdk';
 
 const mockCreate = jest.fn();
 
@@ -58,7 +57,9 @@ describe('SentimentService', () => {
         choices: [{ message: { content: 'Sentiment: positive\nScore: 4' } }],
       });
 
-      const result = await service.analyseSentimentFromComment({ content: 'Great product!' });
+      const result = await service.analyseSentimentFromComment({
+        content: 'Great product!',
+      });
       expect(result).toEqual(['Positive', '4']);
     });
 
@@ -75,13 +76,20 @@ describe('SentimentService', () => {
     it('should create a comment and store analysis result', async () => {
       const dto = { content: 'Loved it!', author: 'alice', userId: 1 };
       const comment = { id: 10, ...dto };
-      const analysisResult = { id: 1, sentiment: 'Positive', score: '5', commentId: 10 };
+      const analysisResult = {
+        id: 1,
+        sentiment: 'Positive',
+        score: '5',
+        commentId: 10,
+      };
 
       mockCommentsService.create.mockResolvedValue(comment);
       mockCreate.mockResolvedValue({
         choices: [{ message: { content: 'Sentiment: positive\nScore: 5' } }],
       });
-      mockDatabaseService.analysisResult.create.mockResolvedValue(analysisResult);
+      mockDatabaseService.analysisResult.create.mockResolvedValue(
+        analysisResult,
+      );
 
       const result = await service.analyseOneComment(dto);
       expect(result).toEqual(analysisResult);
