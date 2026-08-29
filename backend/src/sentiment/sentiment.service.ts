@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import axios from 'axios';
+import Groq from 'groq-sdk';
 import { CommentsService } from 'src/comments/comments.service';
 import { CreateCommentDto } from '../dto/create-comment.dto';
 
@@ -15,21 +15,24 @@ export class SentimentService {
             Score: <1-5> `;
 
         try {
-            const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-            const response = await axios.post(`${ollamaUrl}/api/generate`, {
-                model: 'llama3',
-                prompt: prompt,
-                stream: false,
+            const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+            const chatCompletion = await groq.chat.completions.create({
+                messages: [{ role: 'user', content: prompt }],
+                model: 'openai/gpt-oss-20b',
+                temperature: 0.1,
             });
 
-            const result = response.data.response.trim();
+            const result = chatCompletion.choices[0].message.content.trim();
+            console.log('Groq raw response:', result);
+
             const lines = result.split('\n');
-            const sentiment = lines[0].split(':')[1].trim();
+            const rawSentiment = lines[0].split(':')[1].trim();
+            const sentiment = rawSentiment.charAt(0).toUpperCase() + rawSentiment.slice(1).toLowerCase();
             const score = lines[1].split(':')[1].trim();
 
             return [sentiment, score];
         } catch (error) {
-            console.error('Ollama sentiment analysis failed:', error.message);
+            console.error('Groq sentiment analysis failed:', error.message);
             throw new Error('Sentiment analysis failed');
         }
     }
