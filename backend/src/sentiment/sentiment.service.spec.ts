@@ -2,10 +2,24 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SentimentService } from './sentiment.service';
 import { DatabaseService } from '../database/database.service';
 import { CommentsService } from '../comments/comments.service';
-import axios from 'axios';
+import Groq from 'groq-sdk';
 
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+const mockCreate = jest.fn();
+
+jest.mock('groq-sdk', () => {
+  return {
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => {
+      return {
+        chat: {
+          completions: {
+            create: mockCreate,
+          },
+        },
+      };
+    }),
+  };
+});
 
 describe('SentimentService', () => {
   let service: SentimentService;
@@ -31,6 +45,7 @@ describe('SentimentService', () => {
 
     service = module.get<SentimentService>(SentimentService);
     jest.clearAllMocks();
+    mockCreate.mockClear();
   });
 
   it('should be defined', () => {
@@ -38,17 +53,17 @@ describe('SentimentService', () => {
   });
 
   describe('analyseSentimentFromComment', () => {
-    it('should return [sentiment, score] on successful Ollama response', async () => {
-      mockedAxios.post.mockResolvedValue({
-        data: { response: 'Sentiment: positive\nScore: 4' },
+    it('should return [sentiment, score] on successful Groq response', async () => {
+      mockCreate.mockResolvedValue({
+        choices: [{ message: { content: 'Sentiment: positive\nScore: 4' } }],
       });
 
       const result = await service.analyseSentimentFromComment({ content: 'Great product!' });
-      expect(result).toEqual(['positive', '4']);
+      expect(result).toEqual(['Positive', '4']);
     });
 
-    it('should throw an error when Ollama request fails', async () => {
-      mockedAxios.post.mockRejectedValue(new Error('connection refused'));
+    it('should throw an error when Groq request fails', async () => {
+      mockCreate.mockRejectedValue(new Error('connection refused'));
 
       await expect(
         service.analyseSentimentFromComment({ content: 'Terrible!' }),
@@ -60,11 +75,11 @@ describe('SentimentService', () => {
     it('should create a comment and store analysis result', async () => {
       const dto = { content: 'Loved it!', author: 'alice', userId: 1 };
       const comment = { id: 10, ...dto };
-      const analysisResult = { id: 1, sentiment: 'positive', score: '5', commentId: 10 };
+      const analysisResult = { id: 1, sentiment: 'Positive', score: '5', commentId: 10 };
 
       mockCommentsService.create.mockResolvedValue(comment);
-      mockedAxios.post.mockResolvedValue({
-        data: { response: 'Sentiment: positive\nScore: 5' },
+      mockCreate.mockResolvedValue({
+        choices: [{ message: { content: 'Sentiment: positive\nScore: 5' } }],
       });
       mockDatabaseService.analysisResult.create.mockResolvedValue(analysisResult);
 
@@ -72,7 +87,7 @@ describe('SentimentService', () => {
       expect(result).toEqual(analysisResult);
       expect(mockCommentsService.create).toHaveBeenCalledWith(dto);
       expect(mockDatabaseService.analysisResult.create).toHaveBeenCalledWith({
-        data: { sentiment: 'positive', score: '5', commentId: 10 },
+        data: { sentiment: 'Positive', score: '5', commentId: 10 },
       });
     });
   });
