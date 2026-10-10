@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.3.1...v1.4.0) (2026-10-10)
+
+
+### Features
+
+* **infra:** setup terraform modules and environments for staging and production ([ba0cd0a](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/ba0cd0a9c10f7085e26b4624fa3697229a038564))
+
 ## [1.3.1](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.3.0...v1.3.1) (2026-08-29)
 
 
