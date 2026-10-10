@@ -45,4 +45,5 @@ backend/.DS_Store
 *.local
 docker-compose.yml
 
-
+# === Terraform ===
+terraform/**/.terraform/
