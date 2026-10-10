@@ -74,16 +74,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Resolve image reference for Trivy
-        id: image_ref
-        run: |
-          FIRST_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
-          echo "tag=$FIRST_TAG" >> $GITHUB_OUTPUT
       - name: Trivy – Security Gate (CRITICAL, blocks push)
         id: trivy_gate
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ steps.image_ref.outputs.tag }}
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           format: table
           output: trivy-report-${{ matrix.service.image-name }}.txt
           severity: CRITICAL
@@ -101,7 +96,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         if: always()
         with:
-          image-ref: ${{ steps.image_ref.outputs.tag }}
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           format: sarif
           output: trivy-report-${{ matrix.service.image-name }}.sarif
           severity: CRITICAL,HIGH
