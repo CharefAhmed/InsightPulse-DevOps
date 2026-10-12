@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.2](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.4.1...v1.4.2) (2026-10-12)
+
+
+### Bug Fixes
+
+* **ci:** resolve trivy image ref issue and patch critical npm vulnerabilities ([dd0310c](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/dd0310c3f5c0f000ce0b00552a6103b1d519f569))
+* **frontend:** patch critical npm vulnerabilities in frontend dependencies ([0494d36](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/0494d36235386024d0ae6953bf2380f1c8822ae0))
+
 ## [1.4.1](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.4.0...v1.4.1) (2026-10-10)
 
 
