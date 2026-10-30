@@ -1,0 +1,64 @@
+name: "Destroy — InsightPulse Infrastructure"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to destroy"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      confirm:
+        description: 'Type "YES" to confirm destruction'
+        required: true
+        default: ""
+
+env:
+  OS_AUTH_URL: ${{ secrets.OVH_OS_AUTH_URL }}
+  OS_USERNAME: ${{ secrets.OVH_OS_USERNAME }}
+  OS_PASSWORD: ${{ secrets.OVH_OS_PASSWORD }}
+  OS_TENANT_NAME: ${{ secrets.OVH_OS_TENANT_NAME }}
+  OS_TENANT_ID: ${{ secrets.OVH_OS_TENANT_ID }}
+  OS_REGION_NAME: ${{ secrets.OVH_OS_REGION_NAME }}
+
+jobs:
+  destroy:
+    name: "Terraform Destroy — ${{ github.event.inputs.environment }}"
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'YES'
+    defaults:
+      run:
+        working-directory: terraform/${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+          terraform_wrapper: false
+
+      - name: Warning
+        run: |
+          echo "================================================"
+          echo "  DESTROYING ENVIRONMENT: ${{ github.event.inputs.environment }}"
+          echo "  Triggered by : ${{ github.actor }}"
+          echo "  Date         : $(date)"
+          echo "================================================"
+          echo "Destruction starts in 10 seconds..."
+          sleep 10
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan Destroy
+        run: terraform plan -destroy -no-color -input=false
+
+      - name: Terraform Destroy
+        run: |
+          terraform destroy -auto-approve -input=false
+          echo "${{ github.event.inputs.environment }} infrastructure destroyed."

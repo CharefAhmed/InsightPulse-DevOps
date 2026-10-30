@@ -1,0 +1,487 @@
+name: "Deploy — InsightPulse"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+      - "ansible/**"
+      - "helm/**"
+  # PRODUCTION — Commented out for cost control.
+  # Uncomment to enable deployment on a GitHub Release.
+  # release:
+  #   types: [published]
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Target deployment environment"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+  pull_request:
+    paths:
+      - "terraform/**"
+      - "ansible/**"
+      - "helm/**"
+      - ".github/workflows/deploy.yml"
+
+# OpenStack OVHcloud credentials injected globally
+env:
+  OS_AUTH_URL: ${{ secrets.OVH_OS_AUTH_URL }}
+  OS_USERNAME: ${{ secrets.OVH_OS_USERNAME }}
+  OS_PASSWORD: ${{ secrets.OVH_OS_PASSWORD }}
+  OS_TENANT_NAME: ${{ secrets.OVH_OS_TENANT_NAME }}
+  OS_TENANT_ID: ${{ secrets.OVH_OS_TENANT_ID }}
+  OS_REGION_NAME: ${{ secrets.OVH_OS_REGION_NAME }}
+
+jobs:
+  # ===========================================================================
+  # JOB 1 — plan
+  # Runs on every trigger (PR, push, dispatch).
+  # Lints, validates, and simulates the Terraform execution plan.
+  # On PRs: posts the plan diff as a comment for team review.
+  # Detects the target environment and passes it to the apply job.
+  # ===========================================================================
+  plan:
+    name: "Terraform Plan"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: terraform/staging
+    outputs:
+      environment: ${{ steps.check-env.outputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+          terraform_wrapper: false
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check -recursive
+        working-directory: terraform
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color -input=false
+        continue-on-error: true
+
+      - uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.MY_PAT_TOKEN }}
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const prev = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('<!-- insightpulse-tf-plan -->')
+            );
+            if (prev) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: prev.id,
+              });
+            }
+            const icon = s => s === 'success' ? '✅' : '❌';
+            const output = `<!-- insightpulse-tf-plan -->
+            #### Terraform Format ${icon('${{ steps.fmt.outcome }}')}
+            #### Terraform Init ${icon('${{ steps.init.outcome }}')}
+            #### Terraform Validate ${icon('${{ steps.validate.outcome }}')}
+            #### Terraform Plan ${icon('${{ steps.plan.outcome }}')}
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`hcl
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Actor: @${{ github.actor }} | Event: \`${{ github.event_name }}\`*`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output,
+            });
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      # -- Detect target environment --
+      - name: Check Environment
+        id: check-env
+        working-directory: .
+        run: |
+          # 1. Manual trigger: prioritize user input from workflow_dispatch
+          if [ -n "${{ inputs.target_env }}" ]; then
+            echo "environment=${{ inputs.target_env }}" >> $GITHUB_OUTPUT
+          # 2. Release tag (vX.Y.Z) -> production
+          elif [[ "${{ github.ref }}" =~ ^refs\/tags\/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          # 3. Main branch push -> staging
+          elif [[ "${{ github.ref }}" == 'refs/heads/main' ]]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "environment=unknown" >> $GITHUB_OUTPUT
+          fi
+
+  # ===========================================================================
+  # JOB 2 — apply
+  # Runs only on real deployments (push, release, workflow_dispatch).
+  # Skipped entirely on Pull Requests.
+  # Provisions the VM via Terraform, then configures it via Ansible.
+  # ===========================================================================
+  apply:
+    name: "Terraform Apply & Ansible"
+    needs: [plan]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      public_ip: ${{ steps.get-ip.outputs.public_ip }}
+    defaults:
+      run:
+        working-directory: terraform/staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+          terraform_wrapper: false
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      # -- Write SSH keys --
+      # The private key is written to disk for Ansible/SSH usage.
+      # The public key is derived from the private key using ssh-keygen -y
+      # and exported to GITHUB_ENV as TF_VAR_public_key so Terraform can
+      # register it on OpenStack — no separate SSH_PUBLIC_KEY secret needed.
+      - name: Write SSH Keys
+        working-directory: .
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ANSIBLE_SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/insightpulse_key
+          chmod 600 ~/.ssh/insightpulse_key
+          # Derive the public key from the private key and expose it to Terraform
+          PUBLIC_KEY=$(ssh-keygen -y -f ~/.ssh/insightpulse_key)
+          echo "TF_VAR_public_key=${PUBLIC_KEY}" >> $GITHUB_ENV
+
+      # -- Apply Staging --
+      - name: Terraform Apply — Staging
+        if: needs.plan.outputs.environment == 'staging' && github.event_name == 'push'
+        # TF_VAR_public_key is inherited from GITHUB_ENV (set in "Write SSH Keys" step)
+        run: terraform apply -auto-approve
+
+      # PRODUCTION — Commented out for cost control.
+      # Uncomment for production deployment (GitHub Release).
+      # - name: Terraform Init — Production
+      #   if: needs.plan.outputs.environment == 'production' && github.event_name == 'release'
+      #   working-directory: terraform/production
+      #   run: terraform init
+      #
+      # - name: Terraform Apply — Production
+      #   if: needs.plan.outputs.environment == 'production' && github.event_name == 'release'
+      #   working-directory: terraform/production
+      #   # TF_VAR_public_key is inherited from GITHUB_ENV (set in "Write SSH Keys" step)
+      #   run: terraform apply -auto-approve
+
+      - name: Get Public IP
+        id: get-ip
+        working-directory: terraform/${{ needs.plan.outputs.environment }}
+        run: |
+          PUBLIC_IP=$(terraform output -raw public_ip 2>/dev/null || echo "")
+          echo "public_ip=${PUBLIC_IP}" >> $GITHUB_OUTPUT
+
+      # ANSIBLE OS configuration, K3s, Helm stack installation.
+      # Runs only after a terraform apply (not on PRs).
+      - name: Setup Python & Ansible
+        working-directory: .
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y python3 python3-pip
+          pip3 install ansible
+          ansible --version
+
+      - name: Generate Dynamic Inventory
+        working-directory: .
+        run: |
+          mkdir -p ansible/inventory
+          cat > ansible/inventory/${{ needs.plan.outputs.environment }}.ini << EOF
+          [insightpulse]
+          ${{ steps.get-ip.outputs.public_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/insightpulse_key ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
+
+          [insightpulse:vars]
+          environment=${{ needs.plan.outputs.environment }}
+          EOF
+
+      - name: Wait for VM SSH Readiness
+        working-directory: .
+        run: |
+          for i in $(seq 1 20); do
+            if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 \
+                   -i ~/.ssh/insightpulse_key \
+                   ubuntu@${{ steps.get-ip.outputs.public_ip }} "echo ready" 2>/dev/null; then
+              echo "✅ VM SSH-ready (attempt ${i})"
+              break
+            fi
+            echo "  Attempt ${i}/20 — retrying in 5s..."
+            sleep 5
+          done
+          echo "❌ VM did not become SSH-ready within the timeout."
+          exit 1
+
+      - name: Ansible Playbook — site.yml
+        working-directory: ansible
+        run: |
+          ansible-playbook site.yml \
+            -i inventory/${{ needs.plan.outputs.environment }}.ini \
+            --diff \
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+          ANSIBLE_STDOUT_CALLBACK: "yaml"
+
+      - name: Infrastructure Health Check (K3s)
+        working-directory: .
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/insightpulse_key \
+              ubuntu@${{ steps.get-ip.outputs.public_ip }} \
+              "kubectl get nodes && kubectl get pods --all-namespaces"
+        continue-on-error: true
+
+  # ===========================================================================
+  # JOB 3 — deploy
+  # Runs only on real deployments (push, release, workflow_dispatch).
+  # Skipped entirely on Pull Requests.
+  # Downloads kubeconfig from the VM over SSH, then deploys the Helm chart
+  # directly from the runner using that kubeconfig.
+  # ===========================================================================
+  deploy:
+    name: "Helm Deploy"
+    needs: [plan, apply]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read # needed to authenticate to GHCR for the pull secret
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Helm CLI
+        uses: azure/setup-helm@v4
+        with:
+          version: "3.22.1"
+
+      # -- Write SSH key --
+      # Fresh runner: must re-decode the private key to SCP the kubeconfig
+      # and run any SSH commands against the VM.
+      - name: Write SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ANSIBLE_SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/insightpulse_key
+          chmod 600 ~/.ssh/insightpulse_key
+
+      # -- Download kubeconfig from the VM --
+      # K3s is installed with --write-kubeconfig-mode=644, so the file is
+      # world-readable. No sudo needed. SCP fetches it directly from the source.
+      - name: Download kubeconfig
+        run: |
+          scp -o StrictHostKeyChecking=no \
+              -i ~/.ssh/insightpulse_key \
+              ubuntu@${{ needs.apply.outputs.public_ip }}:/etc/rancher/k3s/k3s.yaml \
+              ./kubeconfig
+
+      # -- Patch the server address --
+      # K3s writes server: https://127.0.0.1:6443 (loopback, only valid inside the VM).
+      # Replace it with the real public IP so the runner can reach the K3s API server.
+      - name: Patch kubeconfig server address
+        id: patch-kubeconfig
+        run: |
+          sed -i "s/127.0.0.1/${{ needs.apply.outputs.public_ip }}/g" ./kubeconfig
+          echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
+
+      # -- Create GHCR image pull secret --
+      # Allows K3s to authenticate to ghcr.io and pull private images.
+      # Uses --dry-run=client | apply -f - to be idempotent:
+      #   - First deploy:       creates the secret.
+      #   - Subsequent deploys: silently updates it without "already exists" error.
+      - name: Create GHCR pull secret
+        run: |
+          NAMESPACE="insightpulse-${{ needs.plan.outputs.environment }}"
+          kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret docker-registry ghcr-pull \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --namespace="${NAMESPACE}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # -- Add Helm repos --
+      - name: Add Helm repos
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+
+      # -- Deploy kube-prometheus-stack (monitoring layer) --
+      # Deploys Prometheus + Grafana + Alertmanager + kube-state-metrics + node-exporter.
+      # Lives in its own "monitoring" namespace — completely independent of the app release.
+      # This means: helm rollback insightpulse / helm uninstall insightpulse never touches monitoring.
+      # Resources are tuned in helm/monitoring/values.yaml for the OVH d2-4 node.
+      # SLACK_WEBHOOK_URL is injected via sed so the URL never appears in the repo.
+      - name: Deploy kube-prometheus-stack (monitoring layer)
+        run: |
+          sed "s|SLACK_WEBHOOK_URL_PLACEHOLDER|${{ secrets.SLACK_WEBHOOK_URL }}|g" \
+            helm/monitoring/values.yaml > /tmp/monitoring-values.yaml
+
+          helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+            --namespace monitoring \
+            --create-namespace \
+            --values /tmp/monitoring-values.yaml \
+            --set grafana.adminPassword="${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+            --timeout 8m \
+            --wait
+
+      # -- Deploy InsightPulse custom Grafana dashboard --
+      # The dashboard JSON is stored in the repo (helm/monitoring/dashboards/).
+      # It is applied as a ConfigMap with label grafana_dashboard=1 so Grafana's
+      # sidecar auto-discovers and loads it — no manual UI import needed.
+      # --dry-run=client | apply makes this idempotent across redeploys.
+      - name: Deploy InsightPulse Grafana dashboard
+        run: |
+          kubectl create configmap insightpulse-dashboard \
+            --from-file=insightpulse-overview.json=helm/monitoring/dashboards/insightpulse-overview.json \
+            --namespace monitoring \
+            --dry-run=client -o yaml \
+          | kubectl label --local -f - grafana_dashboard=1 --dry-run=client -o yaml \
+          | kubectl apply -f -
+
+      # -- Deploy PostgreSQL as a separate, independent Helm release --
+      # This is intentionally NOT part of the insightpulse chart (no subchart).
+      # Keeping it separate means:
+      #   - helm rollback insightpulse  → never touches the DB pod or PVC
+      #   - helm uninstall insightpulse → never deletes DB data
+      #   - Migrating to managed DB later → zero chart changes, just update DATABASE_URL
+      # Resources tuned for OVH d2-4 (2 vCore / 4 GB RAM).
+      - name: Deploy PostgreSQL (infrastructure layer)
+        run: |
+          ENV="${{ needs.plan.outputs.environment }}"
+          NAMESPACE="insightpulse-${ENV}"
+          helm upgrade --install insightpulse-db bitnami/postgresql \
+            --namespace "${NAMESPACE}" \
+            --create-namespace \
+            --set auth.postgresPassword="${{ secrets.POSTGRES_PASSWORD }}" \
+            --set auth.database="InsightPulse" \
+            --set primary.resources.requests.cpu="100m" \
+            --set primary.resources.requests.memory="256Mi" \
+            --set primary.resources.limits.cpu="500m" \
+            --set primary.resources.limits.memory="512Mi" \
+            --set primary.persistence.size="2Gi" \
+            --atomic \
+            --timeout 5m \
+            --wait
+
+      # -- Create backend-secrets Kubernetes Secret --
+      # Sensitive env vars are NEVER stored in the Helm chart or repo.
+      # They are injected here at deploy time from GitHub Actions secrets.
+      # Includes: DATABASE_URL (points to insightpulse-db-postgresql service),
+      # JWT_SECRET, REFRESH_JWT_SECRET, and GROQ_API_KEY (used by sentiment service).
+      # --dry-run=client | apply makes this step idempotent across redeploys.
+      - name: Create backend secrets
+        run: |
+          ENV="${{ needs.plan.outputs.environment }}"
+          NAMESPACE="insightpulse-${ENV}"
+          kubectl create secret generic backend-secrets \
+            --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --from-literal=REFRESH_JWT_SECRET="${{ secrets.REFRESH_JWT_SECRET }}" \
+            --from-literal=GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
+            --namespace="${NAMESPACE}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # -- Helm upgrade --install --
+      # Deploys or upgrades the InsightPulse chart.
+      # --install:  creates the release if it does not exist yet.
+      # --atomic:   automatically rolls back if the deployment fails within --timeout.
+      # --wait:     blocks until all pods report Ready.
+      # Image tag:  sha-<commit-sha> produced by build-push.yml (deterministic traceability).
+      # Ingress host: <PUBLIC_IP>.nip.io — free wildcard DNS that resolves to the public IP.
+      - name: Helm upgrade --install
+        run: |
+          ENV="${{ needs.plan.outputs.environment }}"
+          helm upgrade --install insightpulse ./helm/insightpulse \
+            --namespace "insightpulse-${ENV}" \
+            --create-namespace \
+            --values helm/insightpulse/values.yaml \
+            --values helm/insightpulse/values-${ENV}.yaml \
+            --set backend.image.tag="sha-${{ github.sha }}" \
+            --set frontend.image.tag="sha-${{ github.sha }}" \
+            --set ingress.host="${{ needs.apply.outputs.public_ip }}.nip.io" \
+            --atomic \
+            --timeout 5m \
+            --wait
+
+      # -- Verify rollout --
+      # Confirms that both Deployments are fully running before marking this job green.
+      - name: Verify rollout
+        run: |
+          NAMESPACE="insightpulse-${{ needs.plan.outputs.environment }}"
+          kubectl rollout status deployment/insightpulse-backend \
+            --namespace "${NAMESPACE}" --timeout=120s
+          kubectl rollout status deployment/insightpulse-frontend \
+            --namespace "${NAMESPACE}" --timeout=120s
+
+      # -- Summary --
+      # Always runs (even on failure) to print the pod state and the public URL.
+      - name: Deployment Summary
+        if: always() && steps.patch-kubeconfig.outcome == 'success'
+        run: |
+          NAMESPACE="insightpulse-${{ needs.plan.outputs.environment }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  InsightPulse — Deployment Summary"
+          echo "  Environment : ${{ needs.plan.outputs.environment }}"
+          echo "  Image tag   : sha-${{ github.sha }}"
+          echo "  URL         : https://${{ needs.apply.outputs.public_ip }}.nip.io"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          kubectl get pods --namespace "${NAMESPACE}"
