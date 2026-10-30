@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.0](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.4.2...v1.5.0) (2026-10-30)
+
+
+### Features
+
+* **ci:** add deploy and destroy workflow pipelines ([3c10053](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/3c10053b42a492c2ec8a9a121d6dff2f36998833))
+* **deploy:** add helm charts for insightpulse app and monitoring stack ([392242e](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/392242e77ce212a8518252412afe800584035de8))
+* **infra:** add ansible roles for k3s, helm, and system configuration ([1c93a7e](https://github.com/CharefAhmed/InsightPulse-DevOps/commit/1c93a7e92494afa8239d68fc455f05e4f4da4a27))
+
 ## [1.4.2](https://github.com/CharefAhmed/InsightPulse-DevOps/compare/v1.4.1...v1.4.2) (2026-10-12)
 
 
