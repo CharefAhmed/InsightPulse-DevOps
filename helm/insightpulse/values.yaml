@@ -1,0 +1,81 @@
+﻿# values.yaml — Default values for the InsightPulse Helm chart
+
+# -- Global --
+namespace: insightpulse-staging # overridden per environment
+imageOwner: charefahmed
+
+# -- Backend --
+backend:
+  image:
+    repository: ghcr.io/charefahmed/insightpulse-backend
+    tag: latest # overridden by CI: sha-<commit>
+    pullPolicy: IfNotPresent
+  port: 5000
+  replicas: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  env:
+    NODE_ENV: production
+    JWT_EXPIRES_IN: "15m"
+    REFRESH_JWT_EXPIRES_IN: "1d"
+  livenessProbe:
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+  readinessProbe:
+    path: /ready
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    failureThreshold: 3
+
+# -- Frontend --
+frontend:
+  image:
+    repository: ghcr.io/charefahmed/insightpulse-frontend
+    tag: latest # overridden by CI: sha-<commit>
+    pullPolicy: IfNotPresent
+  port: 80
+  replicas: 1
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "32Mi"
+    limits:
+      cpu: "200m"
+      memory: "64Mi"
+
+# -- Ingress (Traefik built into K3s) --
+ingress:
+  enabled: true
+  host: "" # injected at deploy: <PUBLIC_IP>.nip.io
+  tls: true
+  certResolver: letsencrypt
+
+# -- HPA --
+hpa:
+  enabled: true
+  backend:
+    minReplicas: 1
+    maxReplicas: 3 # capped to leave headroom on d2-4
+    cpuUtilization: 75
+  frontend:
+    minReplicas: 1
+    maxReplicas: 2
+    cpuUtilization: 80
+
+# -- GHCR image pull secret (created by CI before helm deploy) --
+imagePullSecret: ghcr-pull
+
+# -- PostgreSQL connection (deployed as separate Helm release: insightpulse-db) --
+# The DATABASE_URL secret is injected directly by CI and not stored here.
+# Internal cluster DNS: insightpulse-db-postgresql.<namespace>.svc.cluster.local:5432
+postgresql:
+  serviceHost: insightpulse-db-postgresql
+  port: 5432
+  database: InsightPulse
