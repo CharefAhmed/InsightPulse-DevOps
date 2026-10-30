@@ -1,0 +1,10 @@
+---
+- name: InsightPulse Infrastructure Setup
+  hosts: insightpulse
+  become: true
+  gather_facts: true
+
+  roles:
+    - system
+    - k3s
+    - helm

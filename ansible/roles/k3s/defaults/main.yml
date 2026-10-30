@@ -1,0 +1,4 @@
+---
+# Default K3s version � pin it to avoid unexpected upgrades on re-runs.
+# Check latest at: https://github.com/k3s-io/k3s/releases
+k3s_version: "v1.37.0+k3s1"
