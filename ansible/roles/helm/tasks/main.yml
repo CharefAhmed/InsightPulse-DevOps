@@ -1,0 +1,33 @@
+---
+- name: Check if Helm is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/helm
+  register: helm_binary
+
+- name: Download Helm install script
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    dest: /tmp/get-helm.sh
+    mode: "0700"
+  when: not helm_binary.stat.exists
+
+- name: Install Helm
+  ansible.builtin.command: /tmp/get-helm.sh
+  environment:
+    DESIRED_VERSION: "v3.22.1"
+  when: not helm_binary.stat.exists
+
+- name: Verify Helm installation
+  ansible.builtin.command: helm version --short
+  register: helm_version
+  changed_when: false
+
+- name: Print Helm version
+  ansible.builtin.debug:
+    msg: "Helm installed: {{ helm_version.stdout }}"
+
+- name: Add Helm KUBECONFIG for ubuntu user
+  ansible.builtin.lineinfile:
+    path: /home/ubuntu/.bashrc
+    line: "export KUBECONFIG=/home/ubuntu/.kube/config"
+    state: present
