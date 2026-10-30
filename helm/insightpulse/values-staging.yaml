@@ -1,0 +1,34 @@
+﻿namespace: insightpulse-staging
+
+backend:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  env:
+    NODE_ENV: staging
+
+frontend:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "32Mi"
+    limits:
+      cpu: "200m"
+      memory: "64Mi"
+
+hpa:
+  enabled: true
+  backend:
+    minReplicas: 1
+    maxReplicas: 2
+    cpuUtilization: 75
+  frontend:
+    minReplicas: 1
+    maxReplicas: 2
+    cpuUtilization: 80

@@ -1,0 +1,41 @@
+﻿{{- if .Values.ingress.enabled }}
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: insightpulse-ingress
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "insightpulse.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.ingress.certResolver }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Values.namespace }}-strip-api@kubernetescrd
+spec:
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          # Backend
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: insightpulse-backend
+                port:
+                  number: 80
+          # Frontend
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: insightpulse-frontend
+                port:
+                  number: 80
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+  {{- end }}
+{{- end }}

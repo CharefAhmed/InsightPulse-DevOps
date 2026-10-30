@@ -1,0 +1,16 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: insightpulse-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "insightpulse.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: insightpulse-backend
+  ports:
+    - name: http
+      port: 80
+      targetPort: {{ .Values.backend.port }}
+      protocol: TCP
