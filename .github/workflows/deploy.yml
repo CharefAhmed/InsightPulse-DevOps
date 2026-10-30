@@ -22,12 +22,14 @@ on:
         options:
           - staging
           - production
-  pull_request:
-    paths:
-      - "terraform/**"
-      - "ansible/**"
-      - "helm/**"
-      - ".github/workflows/deploy.yml"
+  # pull_request trigger disabled until infrastructure and secrets are provisioned.
+  # Re-enable to get Terraform plan diffs posted as PR comments.
+  # pull_request:
+  #   paths:
+  #     - "terraform/**"
+  #     - "ansible/**"
+  #     - "helm/**"
+  #     - ".github/workflows/deploy.yml"
 
 # OpenStack OVHcloud credentials injected globally
 env:
